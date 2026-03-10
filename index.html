@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我和AI这几年 - 互动叙事游戏</title>
+<style>
+/* === RESET & BASE === */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;background:#0a0a0f;color:#e0e0e0}
+
+/* === PAGE SYSTEM === */
+.page{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10}
+.page.active{display:flex}
+.page.fade-enter{animation:pageFadeIn .6s ease forwards}
+.page.fade-exit{animation:pageFadeOut .4s ease forwards}
+@keyframes pageFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pageFadeOut{from{opacity:1}to{opacity:0}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.page-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:-2}
+.page-overlay{position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at center,rgba(10,10,15,.93) 0%,rgba(10,10,15,.78) 35%,rgba(10,10,15,.45) 100%)}
+.page-content{width:100%;max-width:780px;padding:30px 40px 60px;max-height:100vh;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;position:relative;z-index:2}
+.page-content::-webkit-scrollbar{display:none}
+
+/* === TITLE === */
+#title-page .page-overlay{background:radial-gradient(ellipse at center,rgba(10,10,15,.92) 0%,rgba(10,10,15,.7) 50%,rgba(10,10,15,.4) 100%)}
+.title-wrap{text-align:center;max-width:700px;padding:40px}
+.title-wrap h1{font-size:3.2em;font-weight:900;letter-spacing:.1em;background:linear-gradient(135deg,#60a5fa,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px}
+.title-wrap .subtitle{font-size:1.1em;color:#94a3b8;margin-bottom:40px;line-height:1.6}
+
+/* === BUTTONS === */
+.btn{display:inline-block;padding:14px 48px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:#e0e0e0;font-size:1.05em;border-radius:8px;cursor:pointer;transition:all .3s;backdrop-filter:blur(8px);font-family:inherit;letter-spacing:.05em}
+.btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.4);transform:translateY(-2px);box-shadow:0 8px 32px rgba(96,165,250,.15)}
+.btn-primary{border-color:rgba(96,165,250,.5);background:rgba(96,165,250,.1)}
+.btn-primary:hover{background:rgba(96,165,250,.2);border-color:#60a5fa}
+.btn-sm{padding:10px 28px;font-size:.9em}
+
+/* === CHAPTER SPLASH === */
+.ch-splash{text-align:center}
+.ch-splash .ch-tag{display:inline-block;padding:4px 16px;border:1px solid rgba(255,255,255,.15);border-radius:20px;font-size:.75em;color:#94a3b8;letter-spacing:.15em;margin-bottom:16px}
+.ch-splash h2{font-size:2.2em;font-weight:800;margin-bottom:10px}
+.ch-splash .ch-sub{font-size:1em;color:#64748b;margin-bottom:40px}
+
+/* === NARRATIVE & TYPEWRITER === */
+.narrative{line-height:1.9;font-size:1.02em;color:#cbd5e1;margin-bottom:24px}
+.tw-line{margin-bottom:14px;min-height:1.9em}
+.tw-cursor{display:inline-block;width:2px;height:1em;background:#60a5fa;animation:blink .8s infinite;vertical-align:text-bottom;margin-left:2px}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+.highlight{color:#60a5fa;font-weight:600}
+.term{color:#a78bfa;font-weight:600;border-bottom:1px dashed rgba(167,139,250,.4);cursor:help;position:relative}
+.term-tip{display:none;position:fixed;background:rgba(15,15,25,.97);border:1px solid rgba(167,139,250,.3);border-radius:8px;padding:12px 16px;font-size:.85em;color:#cbd5e1;width:280px;font-weight:400;line-height:1.5;z-index:1000;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.term:hover .term-tip{display:block}
+
+/* === INTERACTION BOX === */
+.ix-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:24px;margin:24px 0}
+.ix-box h3{font-size:1.05em;font-weight:600;margin-bottom:16px;color:#e2e8f0}
+.ix-hint{font-size:.85em;color:#64748b;margin-bottom:12px}
+
+/* === CHOICES === */
+.choice-list{display:flex;flex-direction:column;gap:10px}
+.choice-btn{text-align:left;padding:14px 20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.02);color:#cbd5e1;border-radius:8px;cursor:pointer;transition:all .3s;font-size:.95em;line-height:1.5;font-family:inherit}
+.choice-btn:hover{background:rgba(96,165,250,.08);border-color:rgba(96,165,250,.3);transform:translateX(4px)}
+.choice-btn.selected{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.5);color:#e2e8f0}
+.choice-btn.correct{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.5)}
+.choice-btn.wrong{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.4)}
+
+/* === INPUT === */
+.input-area{display:flex;gap:10px;margin-top:12px}
+.input-area input,.input-area textarea{flex:1;padding:12px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#e0e0e0;font-size:.95em;font-family:inherit;outline:none;transition:border-color .3s}
+.input-area input:focus,.input-area textarea:focus{border-color:rgba(96,165,250,.5)}
+.input-area textarea{min-height:100px;resize:vertical}
+.input-area .btn{padding:12px 24px;flex-shrink:0}
+
+/* === TERMINAL === */
+.terminal{background:#0d1117;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden;margin:16px 0}
+.terminal-header{display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06)}
+.terminal-dot{width:10px;height:10px;border-radius:50%}
+.terminal-dot.r{background:#ff5f57}.terminal-dot.y{background:#febc2e}.terminal-dot.g{background:#28c840}
+.terminal-body{padding:16px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.85em;line-height:1.7;max-height:280px;overflow-y:auto;scrollbar-width:none}
+.terminal-body::-webkit-scrollbar{display:none}
+.terminal-line{margin-bottom:4px}
+.terminal-line .prompt-char{color:#22c55e}
+.terminal-line .cmd{color:#e2e8f0}
+.terminal-line .output{color:#64748b}
+.terminal-line .ai-response{color:#60a5fa}
+.terminal-line .error{color:#ef4444}
+
+/* === WHACK GRID === */
+.whack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.whack-hole{min-height:60px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;padding:8px}
+.whack-hole:active{transform:scale(.95)}
+.whack-hole.hit{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4)}
+.whack-hole.miss{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.4)}
+
+/* === DRAG & DROP === */
+.drag-source{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;justify-content:center}
+.drag-item{padding:10px 18px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:6px;cursor:grab;font-size:.88em;user-select:none;transition:all .2s}
+.drag-item:active{cursor:grabbing;opacity:.7}
+.drag-item.dragging{opacity:.4}
+.drag-item.placed{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);cursor:default}
+.drop-zone{display:flex;flex-direction:column;gap:8px}
+.drop-slot{min-height:44px;border:2px dashed rgba(255,255,255,.1);border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px;transition:all .3s;font-size:.88em}
+.drop-slot .slot-label{color:#64748b;font-size:.85em;flex-shrink:0;width:70px}
+.drop-slot .slot-content{flex:1;min-height:24px;border-radius:4px}
+.drop-slot.over{border-color:rgba(96,165,250,.5);background:rgba(96,165,250,.05)}
+.drop-slot.filled{border-color:rgba(34,197,94,.3);border-style:solid}
+.drop-slot.wrong-slot{border-color:rgba(239,68,68,.4)}
+
+/* === PIPELINE BUILDER === */
+.pipeline{display:flex;flex-direction:column;gap:0;margin:16px 0;position:relative}
+.pipe-step{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,.02);transition:all .3s}
+.pipe-step.active-step{border-color:rgba(96,165,250,.4);background:rgba(96,165,250,.05)}
+.pipe-step.done-step{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.03)}
+.pipe-arrow{text-align:center;color:#475569;font-size:.8em;margin:-4px 0 4px 0}
+.pipe-step-num{width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:.75em;flex-shrink:0;color:#64748b}
+.pipe-step.done-step .pipe-step-num{border-color:rgba(34,197,94,.5);color:#22c55e}
+
+/* === RESULT & REFLECTION === */
+.result-panel{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:24px;margin:20px 0;text-align:center}
+.result-panel .score{font-size:2.5em;font-weight:800;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.result-panel .score-label{font-size:.85em;color:#64748b;margin-top:4px}
+.reflection-box{background:linear-gradient(135deg,rgba(96,165,250,.05),rgba(167,139,250,.05));border:1px solid rgba(167,139,250,.15);border-radius:12px;padding:24px;margin:20px 0;font-style:italic;color:#94a3b8;line-height:1.8}
+
+/* === SLIDER === */
+.slider-container{margin:16px 0}
+.slider-container label{font-size:.9em;color:#cbd5e1;display:block;margin-bottom:6px}
+.slider-container input[type=range]{width:100%;-webkit-appearance:none;height:6px;background:rgba(255,255,255,.1);border-radius:3px;outline:none}
+.slider-container input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;background:#60a5fa;border-radius:50%;cursor:pointer;box-shadow:0 0 10px rgba(96,165,250,.4)}
+.slider-label{display:flex;justify-content:space-between;font-size:.8em;color:#64748b;margin-top:6px}
+
+/* === PUZZLE CELL === */
+.puzzle-cell{padding:12px;text-align:center;border:1px solid rgba(255,255,255,.1);border-radius:8px;cursor:pointer;transition:all .3s;font-size:.9em;background:rgba(255,255,255,.02)}
+.puzzle-cell:hover{background:rgba(96,165,250,.08);border-color:rgba(96,165,250,.3)}
+.puzzle-cell.matched{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);pointer-events:none}
+
+/* === DIALOGUE === */
+.dialogue-box{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px;margin:16px 0}
+.dialogue-msg{display:flex;gap:12px;margin-bottom:12px;opacity:0;animation:fadeInUp .4s forwards}
+.dialogue-msg.ai{flex-direction:row}
+.dialogue-msg.human{flex-direction:row-reverse}
+.dialogue-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8em;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
+.dialogue-msg.ai .dialogue-avatar{background:rgba(96,165,250,.15);color:#60a5fa}
+.dialogue-msg.human .dialogue-avatar{background:rgba(167,139,250,.15);color:#a78bfa}
+.dialogue-bubble{padding:12px 16px;border-radius:10px;font-size:.92em;line-height:1.6;max-width:75%}
+.dialogue-msg.ai .dialogue-bubble{background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.12)}
+.dialogue-msg.human .dialogue-bubble{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.12)}
+
+/* === TIMELINE === */
+.timeline{position:relative;padding-left:24px;margin:16px 0}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:rgba(255,255,255,.08)}
+.timeline-item{position:relative;margin-bottom:16px;padding-left:16px}
+.timeline-item::before{content:'';position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:50%;border:2px solid #60a5fa;background:#0a0a0f}
+.timeline-item .tl-label{font-size:.8em;color:#60a5fa;margin-bottom:2px;font-weight:600}
+.timeline-item .tl-text{font-size:.9em;color:#94a3b8;line-height:1.5}
+
+/* === BREATH === */
+.breath-circle{width:120px;height:120px;border-radius:50%;border:2px solid rgba(96,165,250,.3);margin:40px auto;display:flex;align-items:center;justify-content:center;font-size:.85em;color:#60a5fa;transition:all 4s ease-in-out}
+.breath-circle.inhale{transform:scale(1.5);border-color:rgba(96,165,250,.6);box-shadow:0 0 40px rgba(96,165,250,.15);margin:60px auto}
+.breath-circle.exhale{transform:scale(1);border-color:rgba(96,165,250,.2);margin:40px auto}
+
+/* === SETTINGS === */
+.settings-bar{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;gap:8px}
+.settings-btn{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(10,10,15,.8);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;backdrop-filter:blur(8px);font-size:.85em}
+.settings-btn:hover{background:rgba(255,255,255,.08);color:#e0e0e0}
+.volume-popup{position:fixed;bottom:70px;right:20px;background:rgba(15,15,25,.95);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:16px;z-index:200;display:none;backdrop-filter:blur(12px);width:200px}
+.volume-popup.show{display:block}
+.volume-popup label{font-size:.8em;color:#94a3b8;display:block;margin-bottom:6px}
+.volume-popup input[type=range]{width:100%;margin-bottom:12px}
+
+/* === PROGRESS === */
+.progress-bar-container{position:fixed;top:0;left:0;right:0;height:3px;z-index:300;background:rgba(255,255,255,.05)}
+.progress-bar{height:100%;background:linear-gradient(90deg,#60a5fa,#a78bfa);transition:width .5s ease;width:0}
+
+/* === NAV === */
+.page-nav{display:flex;justify-content:space-between;align-items:center;margin-top:30px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06)}
+.nav-hint{font-size:.8em;color:#475569}
+
+/* === SCANLINE & PARTICLES === */
+.page::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.02) 2px,rgba(0,0,0,.02) 4px);pointer-events:none;z-index:0}
+#particles{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.35}
+
+/* === MOBILE === */
+@media(max-width:768px){
+.title-wrap h1{font-size:2em}
+.page-content{padding:20px 20px 50px}
+.ch-splash h2{font-size:1.5em}
+}
+/* === ASSESSMENT === */
+.assess-cards-section{margin:12px 0}
+.ac-row-label{font-size:.72em;color:#64748b;letter-spacing:.1em;margin-bottom:8px;margin-top:14px}
+.ac-row{display:flex;gap:8px}
+.a-card{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 6px;text-align:center;transition:all .5s;cursor:default}
+.a-card.privilege{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.05)}
+.a-card.ability{border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.05)}
+.a-card.active.privilege{box-shadow:0 0 18px rgba(245,158,11,.4);border-color:rgba(245,158,11,.7);transform:translateY(-3px)}
+.a-card.active.ability{box-shadow:0 0 18px rgba(34,197,94,.4);border-color:rgba(34,197,94,.7);transform:translateY(-3px)}
+.a-card.lost{filter:grayscale(1);opacity:.28;transform:scale(.93)}
+.a-card.kept-flash.privilege{animation:kfP .6s ease}
+.a-card.kept-flash.ability{animation:kfA .6s ease}
+@keyframes kfP{0%,100%{transform:translateY(0)}40%{transform:translateY(-5px);box-shadow:0 0 24px rgba(245,158,11,.5)}}
+@keyframes kfA{0%,100%{transform:translateY(0)}40%{transform:translateY(-5px);box-shadow:0 0 24px rgba(34,197,94,.5)}}
+.a-card-icon{font-size:1.3em;margin-bottom:3px}
+.a-card-label{font-size:.68em;color:#94a3b8;line-height:1.3}
+.assess-terminal{background:#0d1117;border:1px solid rgba(239,68,68,.3);border-radius:10px;overflow:hidden;margin:16px 0}
+.assess-terminal .at-head{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(239,68,68,.06);border-bottom:1px solid rgba(239,68,68,.15)}
+.assess-terminal .at-dot{width:8px;height:8px;border-radius:50%;background:#ef4444}
+.assess-terminal .at-title{font-size:.72em;color:#ef4444;letter-spacing:.1em;font-family:monospace}
+.assess-terminal .at-body{padding:12px 16px;font-family:monospace;font-size:1.1em;line-height:1.7;color:#cbd5e1}
+.assess-counter{display:flex;gap:16px;justify-content:center;margin:10px 0}
+.assess-counter span{font-size:.78em;padding:4px 14px;border:1px solid rgba(255,255,255,.08);border-radius:20px;color:#64748b}
+.assess-round{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px;margin:12px 0}
+.ar-type{font-size:.94em;letter-spacing:.1em;margin-bottom:10px}
+.assess-opts{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.assess-opt{text-align:left;padding:12px 18px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.02);color:#cbd5e1;border-radius:8px;cursor:pointer;transition:all .25s;font-size:1.05em;line-height:1.5;font-family:inherit}
+.assess-opt:not(:disabled):hover{transform:translateX(4px)}
+.assess-opt.keep-opt:not(:disabled):hover{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.35)}
+.assess-opt.lose-opt:not(:disabled):hover{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.3)}
+.assess-opt:disabled{opacity:.5;cursor:default}
+</style>
+</head>
+<body>
+<div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div></div>
+<canvas id="particles"></canvas>
+<div class="settings-bar">
+<button class="settings-btn" id="soundToggle" title="Sound">SND</button>
+<button class="settings-btn" id="volumeBtn" title="Volume">VOL</button>
+</div>
+<div class="volume-popup" id="volumePopup">
+<label>BGM</label><input type="range" id="bgmVolume" min="0" max="100" value="30">
+<label>SFX</label><input type="range" id="sfxVolume" min="0" max="100" value="50">
+</div>
+
+<!-- TITLE -->
+<div class="page active" id="title-page">
+<div class="page-bg" style="background-image:url('assets/title_bg.png')"></div>
+<div class="page-overlay"></div>
+<div class="title-wrap" style="z-index:2">
+<h1>我和AI这几年</h1>
+<p class="subtitle">从GPT-3.5到OpenClaw，从轻视到共生<br>一段关于人类与AI共同进化的互动叙事</p>
+<button class="btn btn-primary" onclick="G.start()">开始旅程</button>
+<div style="margin-top:16px"><button class="btn btn-sm" onclick="G.showIntro()">游戏说明</button></div>
+</div>
+</div>
+
+<!-- INTRO -->
+<div class="page" id="intro-page">
+<div class="page-bg" style="background-image:url('assets/title_bg.png')"></div>
+<div class="page-overlay" style="background:radial-gradient(ellipse at center,rgba(10,10,15,.95) 0%,rgba(10,10,15,.8) 50%,rgba(10,10,15,.5) 100%)"></div>
+<div class="page-content" style="z-index:2">
+<div class="ch-splash"><div class="ch-tag">游戏说明</div><h2 style="font-size:1.6em;color:#e2e8f0">关于这个游戏</h2></div>
+<div class="narrative" style="margin-top:24px">
+<p>你将扮演一位普通的科技从业者，亲历AI从"玩具"到"伙伴"再到"威胁"最后走向"共生"的完整旅程。</p>
+<p>游戏共<span class="highlight">7个章节</span>，每个章节对应AI发展的一个关键时期。你需要完成各种互动任务：写prompt、搭工作流、消灭幻觉、体验vibe coding、面对AI对人类价值的挑战。</p>
+<p>鼠标悬停在<span class="term">紫色术语<span class="term-tip">像这样就能看到术语解释</span></span>上可以查看解释。每个选择都会影响你的"AI认知指数"，最终决定你的结局。</p>
+<p>这不仅是一个游戏，更是一面镜子 -- 照见我们在AI时代的真实处境。</p>
+</div>
+<div class="page-nav"><span></span><button class="btn" onclick="G.go('title-page')">返回</button></div>
+</div>
+</div>
+
+<!-- dynamic pages injected here -->
+<div id="dynamic-pages"></div>
+
+<script>
+// ===================== AUDIO ENGINE =====================
+class Audio {
+  constructor(){this.ctx=null;this.on=true;this.bgmVol=.39;this.sfxVol=.5;this.bgmNodes=[];this.bgmGain=null}
+  init(){if(this.ctx)return;this.ctx=new(window.AudioContext||window.webkitAudioContext)();this.bgmGain=this.ctx.createGain();this.bgmGain.gain.value=this.bgmVol;this.bgmGain.connect(this.ctx.destination)}
+  _resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()}
+  playBgm(ci){
+    this.init();this._resume();this.stopBgm();
+    // Richer ambient pads with multiple detuned oscillators
+    const chords=[[130.8,164.8,196],[146.8,185,220],[164.8,196,246.9],[174.6,220,261.6],[110,138.6,164.8],[98,123.5,146.8],[130.8,164.8,196,246.9],[130.8,164.8,196]];
+    const freqs=chords[ci]||chords[0];
+    // Main pad layer
+    freqs.forEach((f,i)=>{
+      [-4,-1,0,2,5].forEach(detune=>{
+        const o=this.ctx.createOscillator(),g=this.ctx.createGain();
+        o.type='sine';o.frequency.value=f;o.detune.value=detune;
+        g.gain.value=0;g.gain.linearRampToValueAtTime(.018/freqs.length,this.ctx.currentTime+4);
+        o.connect(g);g.connect(this.bgmGain);o.start();this.bgmNodes.push(o);
+      });
+      // Sub octave
+      const sub=this.ctx.createOscillator(),sg=this.ctx.createGain();
+      sub.type='sine';sub.frequency.value=f/2;sg.gain.value=0;
+      sg.gain.linearRampToValueAtTime(.025/freqs.length,this.ctx.currentTime+3);
+      sub.connect(sg);sg.connect(this.bgmGain);sub.start();this.bgmNodes.push(sub);
+    });
+    // LFO volume modulation for breathing feel
+    const lfo=this.ctx.createOscillator(),lfoG=this.ctx.createGain();
+    lfo.type='sine';lfo.frequency.value=.08;lfoG.gain.value=.004;
+    lfo.connect(lfoG);lfoG.connect(this.bgmGain.gain);lfo.start();this.bgmNodes.push(lfo);
+    // Filtered noise for warmth
+    const buf=this.ctx.createBuffer(1,this.ctx.sampleRate*4,this.ctx.sampleRate);
+    const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);
+    const ns=this.ctx.createBufferSource();ns.buffer=buf;ns.loop=true;
+    const nf=this.ctx.createBiquadFilter();nf.type='lowpass';nf.frequency.value=300;nf.Q.value=0.7;
+    const ng=this.ctx.createGain();ng.gain.value=.03;
+    ns.connect(nf);nf.connect(ng);ng.connect(this.bgmGain);ns.start();this.bgmNodes.push(ns);
+  }
+  stopBgm(){try{this.bgmNodes.forEach(n=>n.stop())}catch(e){}this.bgmNodes=[]}
+  _tone(freq,type,vol,dur,ramp){
+    if(!this.on)return;this.init();
+    const o=this.ctx.createOscillator(),g=this.ctx.createGain();
+    o.type=type;o.frequency.value=freq;
+    if(ramp)o.frequency[ramp[0]](ramp[1],this.ctx.currentTime+ramp[2]);
+    g.gain.value=vol*this.sfxVol;g.gain.exponentialRampToValueAtTime(.001,this.ctx.currentTime+dur);
+    o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(this.ctx.currentTime+dur);
+  }
+  click(){this._tone(600,'sine',.15,.1,['exponentialRampToValueAtTime',400,.08])}
+  success(){if(!this.on)return;this.init();[523,659,784].forEach((f,i)=>{const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0;g.gain.linearRampToValueAtTime(this.sfxVol*.12,this.ctx.currentTime+i*.12+.02);g.gain.exponentialRampToValueAtTime(.001,this.ctx.currentTime+i*.12+.4);o.connect(g);g.connect(this.ctx.destination);o.start(this.ctx.currentTime+i*.12);o.stop(this.ctx.currentTime+i*.12+.4)})}
+  error(){this._tone(200,'square',.08,.25,['linearRampToValueAtTime',150,.2])}
+  transition(){this._tone(220,'sine',.1,.8,['exponentialRampToValueAtTime',880,.6])}
+  typeKey(){if(!this.on)return;this.init();this._resume();const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='sine';o.frequency.value=800+Math.random()*400;g.gain.value=this.sfxVol*.035;g.gain.exponentialRampToValueAtTime(.001,this.ctx.currentTime+.04);o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(this.ctx.currentTime+.04)}
+  whack(){this._tone(300,'square',.15,.15,['exponentialRampToValueAtTime',80,.15])}
+  reveal(){if(!this.on)return;this.init();[330,392,494,587].forEach((f,i)=>{const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0;g.gain.linearRampToValueAtTime(this.sfxVol*.08,this.ctx.currentTime+i*.1+.01);g.gain.exponentialRampToValueAtTime(.001,this.ctx.currentTime+i*.1+.5);o.connect(g);g.connect(this.ctx.destination);o.start(this.ctx.currentTime+i*.1);o.stop(this.ctx.currentTime+i*.1+.5)})}
+  breath(){if(!this.on)return;this.init();const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='sine';o.frequency.value=174;g.gain.value=0;g.gain.linearRampToValueAtTime(this.sfxVol*.06,this.ctx.currentTime+2);g.gain.linearRampToValueAtTime(0,this.ctx.currentTime+4);o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(this.ctx.currentTime+4)}
+  setVol(t,v){if(t==='bgm'){this.bgmVol=v;if(this.bgmGain)this.bgmGain.gain.value=v}else this.sfxVol=v}
+  toggle(){this.on=!this.on;if(this.bgmGain)this.bgmGain.gain.value=this.on?this.bgmVol:0;return this.on}
+}
+const sfx=new Audio();
+// ===================== GAME ENGINE =====================
+const TERMS={
+  "GPT-3.5":"OpenAI的大语言模型，ChatGPT的初始版本，拥有1750亿参数，首次让普通人体验到AI对话的能力",
+  "涌现能力":"当模型规模超过某个阈值后，突然展现出训练目标中未明确包含的新能力，如推理、翻译、编程等",
+  "幻觉":"AI生成看似合理但实际错误或虚构的内容，大语言模型的核心缺陷之一",
+  "Prompt Engineering":"提示词工程，通过精心设计输入文本来引导AI产生更准确、更有用的输出",
+  "思维链":"Chain-of-Thought(CoT)，让AI展示推理的中间步骤而非直接给答案，显著提升复杂推理能力",
+  "Few-shot Learning":"通过在prompt中提供少量示例，让AI理解任务模式并模仿执行",
+  "GPT-4":"OpenAI发布的多模态大模型，相比GPT-3.5有质的飞跃，支持图像输入",
+  "RAG":"Retrieval-Augmented Generation，检索增强生成，让AI先检索外部知识库再回答，有效缓解幻觉",
+  "Workflow":"工作流，将多个AI调用和工具操作串联成自动化流程的编排方式",
+  "AI Agent":"具备自主规划、工具使用、记忆和反思能力的AI系统，能自主完成复杂多步骤任务",
+  "Multi-Agent":"多Agent协作系统，多个AI Agent各司其职、相互协调完成复杂任务",
+  "Function Calling":"让AI模型调用外部函数/API的能力，是Agent实现工具使用的核心技术",
+  "Claude 3":"Anthropic发布的大模型家族，在推理和编程方面表现突出",
+  "Vibe Coding":"一种AI辅助编程方式，用自然语言描述需求，AI生成完整代码，开发者主要负责验证和调整",
+  "Claude Code":"Anthropic推出的AI编程助手，能在终端中直接编写、调试和部署代码",
+  "MCP":"Model Context Protocol，模型上下文协议，让AI模型与外部工具和数据源交互的标准化协议",
+  "Skills":"在MCP基础上构建的可复用AI能力模块，让Agent获得特定领域的专业技能",
+  "GPT-4o":"OpenAI发布的全能模型，支持文本、语音、图像的原生多模态交互",
+  "DeepSeek":"深度求索，中国AI公司，开源模型DeepSeek-V3和R1在推理能力上取得突破性进展",
+  "OpenClaw":"一个让AI系统自主进化和迭代的框架，像龙虾(Claw)一样不断蜕壳生长",
+  "Alignment":"对齐问题，确保AI系统的目标和行为与人类价值观一致的研究方向",
+  "思维外包":"过度依赖AI进行思考和决策，导致自身思维能力退化的现象",
+  "AI依赖症":"对AI工具产生心理依赖，离开AI后感到焦虑、无力的状态",
+  "能力幻觉":"误以为AI的能力就是自己的能力，在AI辅助下高估自身水平的认知偏差",
+  "人机共生":"人类与AI各展所长、相互增强的协作模式，而非替代关系",
+  "具身认知":"通过身体与物理世界的互动来获得理解和知识，AI无法替代的人类独特能力",
+  "深度工作":"在无干扰状态下进行高认知要求的工作，是AI时代最有价值的人类能力之一",
+  "数字正念":"在技术洪流中保持有意识的使用习惯，避免被技术绑架",
+};
+const CHAPS=[
+  {id:"ch1",title:"初见：不过如此",sub:"GPT-3.5横空出世",bg:"assets/ch1_dawn.png",color:"#60a5fa"},
+  {id:"ch2",title:"驯化：Prompt的艺术",sub:"从对话到工程",bg:"assets/ch2_prompt.png",color:"#f59e0b"},
+  {id:"ch3",title:"觉醒：Agent崛起",sub:"从工具到自主体",bg:"assets/ch3_agents.png",color:"#22c55e"},
+  {id:"ch4",title:"沉迷：Vibe Coding",sub:"AI原生开发时代",bg:"assets/ch4_vibe.png",color:"#a78bfa"},
+  {id:"ch5",title:"进化：自我迭代",sub:"Skills与OpenClaw",bg:"assets/ch5_awaken.png",color:"#ef4444"},
+  {id:"ch6",title:"危机：谁在使用谁",sub:"价值的消解与对峙",bg:"assets/ch6_crisis.png",color:"#94a3b8"},
+  {id:"ch7",title:"共生：回归与超越",sub:"人机协作的新范式",bg:"assets/ch7_coexist.png",color:"#f59e0b"},
+];
+
+const G={
+  awareness:0, chIdx:0, pageCounter:0,
+  // --- Page Management ---
+  _mkPage(bgImg){
+    const id='dp-'+(this.pageCounter++);
+    const div=document.createElement('div');div.className='page';div.id=id;
+    div.innerHTML=`<div class="page-bg" style="background-image:url('${bgImg}')"></div><div class="page-overlay"></div><div class="page-content" style="z-index:2" id="${id}-c"></div>`;
+    document.getElementById('dynamic-pages').appendChild(div);
+    return {id, el:div, content:div.querySelector('.page-content')};
+  },
+  go(id){
+    sfx.transition();
+    // Clear any pending transition
+    if(this._goTimer){clearTimeout(this._goTimer);this._goTimer=null}
+    // Remove active/animation from ALL pages first
+    document.querySelectorAll('.page.active,.page.fade-exit').forEach(p=>{
+      p.classList.remove('active','fade-exit','fade-enter');
+    });
+    const next=document.getElementById(id);
+    if(!next)return;
+    // Small delay for cleanup, then show next
+    this._goTimer=setTimeout(()=>{
+      next.classList.add('active','fade-enter');
+      const c=next.querySelector('.page-content');if(c)c.scrollTop=0;
+      this._goTimer=null;
+    },50);
+  },
+  addAw(n){this.awareness=Math.min(100,Math.max(0,this.awareness+n))},
+  updProgress(){document.getElementById('progressBar').style.width=((this.chIdx+1)/CHAPS.length*100)+'%'},
+
+  // --- Typewriter ---
+  typewrite(container, texts, callback){
+    let ti=0;
+    const _scroll=()=>{const pc=container.closest('.page-content');if(pc)pc.scrollTop=pc.scrollHeight};
+    const nextText=()=>{
+      if(ti>=texts.length){if(callback)callback();return}
+      const raw=texts[ti].html;
+      // If it's a reflection-box, insert it directly and type inside
+      const isBox=raw.startsWith('<div class="reflection-box">');
+      let p;
+      if(isBox){
+        const wrapper=document.createElement('div');wrapper.innerHTML=raw;
+        p=wrapper.firstChild;p.textContent='';container.appendChild(p);
+        // Extract text content from raw html inside the box
+        const tmp=document.createElement('div');tmp.innerHTML=raw;
+        const plainText=tmp.textContent||tmp.innerText;
+        const chars=[...plainText];
+        let ci=0;const cursor=document.createElement('span');cursor.className='tw-cursor';p.appendChild(cursor);
+        const tick=()=>{
+          if(ci>=chars.length){cursor.remove();p.innerHTML=raw.replace(/^<div class="reflection-box">/,'').replace(/<\/div>$/,'');ti++;_scroll();setTimeout(nextText,300);return}
+          cursor.insertAdjacentText('beforebegin',chars[ci]);sfx.typeKey();ci++;_scroll();setTimeout(tick,83);
+        };tick();
+      }else{
+        p=document.createElement('div');p.className='tw-line';container.appendChild(p);
+        const tokens=this._tokenize(raw);
+        let ci=0;const cursor=document.createElement('span');cursor.className='tw-cursor';p.appendChild(cursor);
+        const tick=()=>{
+          if(ci>=tokens.length){cursor.remove();p.innerHTML=raw;ti++;_scroll();setTimeout(nextText,300);return}
+          const tk=tokens[ci];
+          if(tk.tag){cursor.insertAdjacentHTML('beforebegin',tk.raw);ci++;tick();}
+          else{cursor.insertAdjacentHTML('beforebegin',tk.raw);sfx.typeKey();ci++;_scroll();setTimeout(tick,83);}
+        };
+        tick();
+      }
+    };
+    nextText();
+  },
+  _tokenize(html){
+    const tokens=[];let i=0;
+    while(i<html.length){
+      if(html[i]==='<'){
+        // Check if this is a term-tip span - treat entire tooltip as single instant token
+        const tipStart='<span class="term-tip">';
+        if(html.slice(i,i+tipStart.length)===tipStart){
+          const closeTag='</span>';
+          let depth=1;let j=i+tipStart.length;
+          while(j<html.length&&depth>0){
+            if(html.slice(j,j+6)==='<span '){depth++;j+=6;}
+            else if(html.slice(j,j+7)===closeTag){depth--;if(depth>0)j+=7;else j+=7;}
+            else j++;
+          }
+          tokens.push({tag:true,raw:html.slice(i,j)});i=j;
+        }else{
+          let j=html.indexOf('>',i);if(j===-1)j=html.length-1;
+          tokens.push({tag:true,raw:html.slice(i,j+1)});i=j+1;
+        }
+      }else if(html[i]==='&'){
+        let j=html.indexOf(';',i);if(j===-1)j=i;
+        tokens.push({tag:false,raw:html.slice(i,j+1)});i=j+1;
+      }else{tokens.push({tag:false,raw:html[i]});i++;}
+    }
+    return tokens;
+  },
+
+  // --- Terminal typewriter ---
+  termType(container, lines, cb, delay=500){
+    let i=0;const _scroll=()=>{const pc=container.closest('.page-content');if(pc)pc.scrollTop=pc.scrollHeight;container.scrollTop=container.scrollHeight};
+    const next=()=>{
+      if(i>=lines.length){if(cb)cb();return}
+      const d=document.createElement('div');d.className='terminal-line';d.innerHTML=lines[i];d.style.opacity='0';
+      container.appendChild(d);setTimeout(()=>{d.style.opacity='1';sfx.typeKey();_scroll()},50);
+      i++;setTimeout(next,delay);
+    };next();
+  },
+
+  // --- Helpers ---
+  T(text){// inject term tooltips
+    let r=text;
+    Object.entries(TERMS).forEach(([t,tip])=>{
+      const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g');
+      r=r.replace(re,`<span class="term">${t}<span class="term-tip">${tip}</span></span>`);
+    });return r;
+  },
+  shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b},
+  disableChoices(el){el.querySelectorAll('.choice-btn').forEach(b=>b.style.pointerEvents='none')},
+  navHtml(label,fn){return `<div class="page-nav"><span class="nav-hint">AI认知指数: ${this.awareness}</span><button class="btn btn-primary" onclick="this.disabled=true;this.style.opacity='.5';${fn}">${label}</button></div>`},
+
+  // === START ===
+  start(){sfx.init();sfx.playBgm(7);this.chIdx=0;this.awareness=5;this.showChapterSplash(0)},
+  showIntro(){sfx.click();this.go('intro-page')},
+
+  // === CHAPTER SPLASH (title only, then next page for content) ===
+  showChapterSplash(idx){
+    this.chIdx=idx;this.updProgress();
+    const ch=CHAPS[idx];sfx.playBgm(idx);
+    const pg=this._mkPage(ch.bg);
+    pg.content.innerHTML=`<div class="ch-splash"><div class="ch-tag" style="border-color:${ch.color}40;color:${ch.color}">第${idx+1}章</div><h2 style="color:${ch.color}">${ch.title}</h2><p class="ch-sub">${ch.sub}</p><button class="btn btn-primary" onclick="CH[${idx}].start()">进入</button></div>`;
+    this.go(pg.id);
+  },
+
+  // === ENDING ===
+  ending(){
+    const a=this.awareness;let t,d;
+    if(a<30){t='清醒的旁观者';d='你始终保持着对AI的审慎距离。你不容易被技术的浪潮裹挟，但也许也错过了一些可能性。记住：适度拥抱变化，也是一种智慧。'}
+    else if(a<55){t='平衡的共生者';d='你找到了人与AI之间的平衡点。你既能享受AI带来的效率提升，又保持了独立思考的能力。这可能是最健康的状态 -- 但要记住，这个平衡需要持续维护。'}
+    else if(a<80){t='深度融合者';d='你深度拥抱了AI，效率极高，但也付出了一些代价。你的独立思考肌肉可能有些萎缩。好消息是：你已经意识到了这一点。觉知本身，就是改变的开始。'}
+    else{t='觉醒的迷途者';d='你经历了从轻视到沉迷再到迷失的完整旅程。AI几乎消解了你的主体性。但正是这种极端的体验，给了你最深刻的领悟 -- 人之为人的价值，不在于能做什么，而在于选择做什么。'}
+    const pg=this._mkPage('assets/ch7_coexist.png');
+    this._endingPageId=pg.id;
+    pg.content.innerHTML=`<div class="ch-splash"><div class="ch-tag" style="border-color:#f59e0b40;color:#f59e0b">结局</div><h2 style="background:linear-gradient(135deg,#60a5fa,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${t}</h2></div><div class="result-panel"><div class="score">${a}</div><div class="score-label">AI认知指数</div></div><div class="reflection-box">${d}</div><div id="ending-tw"></div><div id="ending-actions" style="display:none"></div>`;
+    this.go(pg.id);
+    document.getElementById('progressBar').style.width='100%';
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ending-tw'),[
+        {html:'回望这段旅程 --'},
+        {html:'从GPT-3.5的初次见面，到Prompt工程的醒悟；从Agent的崛起，到Vibe Coding的沉迷；从OpenClaw的失控，到身份危机的对峙；最终，走向共生。'},
+        {html:'这不仅仅是AI的进化史。这是你 -- 一个人类 -- 在技术巨变中寻找自我的故事。'},
+        {html:'<br><span style="color:#94a3b8;font-style:italic">技术是人类能力的延伸，但不是人类本质的替代。在AI时代，最重要的不是学会使用AI，而是学会在使用AI的同时，不忘记怎么做一个人。</span>'},
+      ],()=>{
+        const acts=document.getElementById('ending-actions');acts.style.display='block';
+        acts.innerHTML=`<div style="text-align:center;margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap"><button class="btn btn-primary" onclick="G.showGlossary()">查看术语表</button><button class="btn" onclick="location.reload()">重新开始旅程</button></div><p style="text-align:center;color:#334155;font-size:.75em;margin-top:20px">我和AI这几年 / An Interactive Narrative</p>`;
+        const pc=acts.closest('.page-content');if(pc)pc.scrollTop=pc.scrollHeight;
+      });
+    },600);
+  },
+  showGlossary(){
+    sfx.click();
+    const pg=this._mkPage('assets/title_bg.png');
+    let html='<div style="max-width:700px;margin:0 auto"><h2 style="text-align:center;margin-bottom:8px;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">AI术语表</h2><p style="text-align:center;color:#64748b;font-size:.85em;margin-bottom:20px">本次旅程中出现的所有AI概念</p><div style="display:flex;flex-direction:column;gap:8px">';
+    Object.entries(TERMS).forEach(([term,desc])=>{
+      html+=`<div style="background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px 16px"><span style="color:#a78bfa;font-weight:600;font-size:.95em">${term}</span><div style="color:#94a3b8;font-size:.82em;line-height:1.5;margin-top:4px">${desc}</div></div>`;
+    });
+    html+=`</div><div style="text-align:center;margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="G.go(G._endingPageId)">返回结局</button><button class="btn btn-primary" onclick="G.downloadGlossary()">下载术语表</button><button class="btn" onclick="location.reload()">重新开始旅程</button></div></div>`;
+    pg.content.innerHTML=html;
+    this.go(pg.id);
+  },
+  downloadGlossary(){
+    let text='我和AI这几年 - 术语表\n';
+    text+='='.repeat(40)+'\n\n';
+    Object.entries(TERMS).forEach(([term,desc])=>{
+      text+=`【${term}】\n${desc}\n\n`;
+    });
+    text+='\n'+'='.repeat(40)+'\n';
+    text+='我和AI这几年 / An Interactive Narrative\n';
+    const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='我和AI这几年-术语表.txt';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  },
+};
+// ===================== CHAPTERS =====================
+const CH=[];
+
+// ============ CH1: Dawn of AI ============
+CH[0]={
+  start(){
+    const pg=G._mkPage(CHAPS[0].bg);
+    const c=pg.content;
+    c.innerHTML='<div class="narrative" id="ch1-tw1"></div><div id="ch1-after1" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch1-tw1'),[
+        {html:'OpenAI悄悄发布了ChatGPT，基于'+G.T('GPT-3.5')+'。你打开网页试了试，问它一个简单的问题。'},
+        {html:'说实话，你不太在意。不就是个聊天机器人吗？Siri、小冰，见得多了。'},
+      ],()=>{
+        const a=document.getElementById('ch1-after1');a.style.display='block';
+        a.innerHTML=`<div class="ix-box"><h3>你第一次跟AI对话，想问什么?</h3><div class="choice-list"><button class="choice-btn" onclick="CH[0].pick(this,1)">"帮我写一首关于加班的诗" -- 试试它的创造力</button><button class="choice-btn" onclick="CH[0].pick(this,2)">"量子计算的原理是什么" -- 考考它真实知识</button><button class="choice-btn" onclick="CH[0].pick(this,3)">"你有自我意识吗?" -- 直接灵魂拷问</button></div></div>`;
+      });
+    },400);
+  },
+  pick(btn,c){
+    sfx.click();btn.classList.add('selected');G.disableChoices(btn.parentElement);
+    const resp={
+      1:{ai:"月光洒在工位上，\n咖啡凉了第三杯。\n键盘声此起彼伏，\n只有加班永不归。\n\n老板说明天就好，\n明天又有新需求...",th:"嗯...还行？有点意思但也没什么了不起的。格式对了，内容嘛...像是拼凑的。",aw:5},
+      2:{ai:"量子计算利用量子力学原理，如叠加态和纠缠态来处理信息。传统计算机使用比特(0或1)，量子计算机使用量子比特(qubit)，可以同时处于0和1的叠加态...",th:"说得挺像回事。但等等，有几个概念好像不太对...这不就是维基百科换了种说法吗？",aw:8},
+      3:{ai:"作为一个AI语言模型，我没有自我意识、情感或主观体验。我是通过大量文本数据训练出来的，本质上是在预测最可能的下一个词...",th:"至少够诚实。但这个回答本身就很有趣 -- 一个没有意识的东西，能如此流畅地讨论意识问题。",aw:12}
+    }[c];
+    G.addAw(resp.aw);
+    // new page for response
+    const pg=G._mkPage(CHAPS[0].bg);
+    pg.content.innerHTML=`<div class="terminal"><div class="terminal-header"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span style="color:#64748b;font-size:.8em;margin-left:8px">ChatGPT</span></div><div class="terminal-body" id="ch1-term"></div></div><div id="ch1-tw2" style="margin-top:16px"></div>`;
+    G.go(pg.id);
+    setTimeout(()=>{
+      const lines=resp.ai.split('\n').map(l=>`<span class="ai-response">${l}</span>`);
+      G.termType(document.getElementById('ch1-term'),lines,()=>{
+        G.typewrite(document.getElementById('ch1-tw2'),[
+          {html:`<div class="reflection-box">${resp.th}</div>`},
+        ],()=>{
+          pg.content.insertAdjacentHTML('beforeend','<div class="narrative" id="ch1-tw3"></div><div id="ch1-after3" style="display:none"></div>');
+          G.typewrite(document.getElementById('ch1-tw3'),[
+            {html:'你试了让它写代码。确实能跑。但仔细看...有个数组越界的bug，它还用了一个根本不存在的库函数。'},
+            {html:'你发现了AI的'+G.T('幻觉')+'问题 -- 它会自信满满地胡说八道。'},
+          ],()=>{
+            document.getElementById('ch1-after3').style.display='block';
+            document.getElementById('ch1-after3').innerHTML=G.navHtml('消灭AI幻觉 &rarr;','CH[0].whack()');
+            const pc=document.getElementById('ch1-after3').closest('.page-content');if(pc)pc.scrollTop=pc.scrollHeight;
+          });
+        });
+      },300);
+    },500);
+  },
+  whack(){
+    sfx.click();
+    const facts=[
+      {text:"GPT-3有1750亿参数",h:false},{text:"ChatGPT发布首周注册破百万",h:false},
+      {text:"GPT-3.5能完美解微积分",h:true},{text:"AI会一本正经地编造文献",h:false},
+      {text:"ChatGPT通过了图灵测试",h:true},{text:"GPT-3.5是多模态模型",h:true},
+      {text:"AI有时会虚构不存在的API",h:false},{text:"所有AI回答的准确率超过99%",h:true},
+      {text:"ChatGPT基于Transformer架构",h:false},
+    ];
+    const totalHallucinations=facts.filter(f=>f.h).length; // 4
+    const pg=G._mkPage(CHAPS[0].bg);
+    pg.content.innerHTML=`<div class="ix-box"><h3>打地鼠：消灭AI幻觉!</h3><p class="ix-hint">AI生成了9段信息，其中有些是幻觉(错误信息)。点击消灭它们! 你有15秒。</p><div class="whack-grid" id="ch1-wg"></div><div style="text-align:center;margin-top:10px"><span id="ch1-ws" style="color:#60a5fa;font-size:1.1em">得分: 0 / ${totalHallucinations}</span>&nbsp;&nbsp;<span id="ch1-wt" style="color:#ef4444">15s</span></div></div><div id="ch1-wr" style="display:none"></div>`;
+    G.go(pg.id);
+    setTimeout(()=>{
+      const grid=document.getElementById('ch1-wg');
+      const shuffled=G.shuffle(facts);
+      let score=0,timeLeft=15,over=false;
+      shuffled.forEach(f=>{
+        const cell=document.createElement('div');cell.className='whack-hole';
+        cell.innerHTML=`<span style="font-size:.75em;line-height:1.3;padding:4px">${f.text}</span>`;
+        cell.onclick=()=>{
+          if(over)return;sfx.whack();
+          if(f.h){cell.classList.add('hit');cell.style.pointerEvents='none';score++;G.addAw(1);
+            document.getElementById('ch1-ws').textContent=`得分: ${score} / ${totalHallucinations}`;
+            if(score>=totalHallucinations){clearInterval(tmr);over=true;sfx.success();
+              grid.querySelectorAll('.whack-hole').forEach(c=>c.style.pointerEvents='none');
+              document.getElementById('ch1-ws').parentElement.style.display='none';
+              const r=document.getElementById('ch1-wr');r.style.display='block';
+              r.innerHTML=`<div class="result-panel"><div class="score">${score}/${totalHallucinations}</div><div class="score-label">幻觉识别</div></div><div class="reflection-box">全部命中! 你的幻觉识别能力不错。但在真实世界里，AI的幻觉远比这些隐蔽。<br><br>此时的你，和大多数人一样 -- 觉得AI不过如此，有趣但不可靠。你不知道的是，风暴才刚刚开始。</div>${G.navHtml('下一章: Prompt的艺术 &rarr;','G.showChapterSplash(1)')}`;
+              const pc=r.closest('.page-content');if(pc)pc.scrollTop=pc.scrollHeight;
+            }
+          }
+          else{cell.classList.add('miss');G.addAw(-1);setTimeout(()=>cell.classList.remove('miss'),300);
+            document.getElementById('ch1-ws').textContent=`得分: ${score} / ${totalHallucinations}`;
+          }
+        };
+        grid.appendChild(cell);
+      });
+      const tmr=setInterval(()=>{
+        timeLeft--;document.getElementById('ch1-wt').textContent=timeLeft+'s';
+        if(timeLeft<=0){clearInterval(tmr);over=true;sfx.success();
+          grid.querySelectorAll('.whack-hole').forEach(c=>c.style.pointerEvents='none');
+          document.getElementById('ch1-ws').parentElement.style.display='none';
+          const r=document.getElementById('ch1-wr');r.style.display='block';
+          const msg=score>=3?"不错，你已经能识别一些AI的胡说八道了。但这只是开始。":"识别AI幻觉没那么容易，对吧？这正是接下来你要面对的核心挑战。";
+          r.innerHTML=`<div class="result-panel"><div class="score">${score}/${totalHallucinations}</div><div class="score-label">幻觉识别</div></div><div class="reflection-box">${msg}<br><br>此时的你，和大多数人一样 -- 觉得AI不过如此，有趣但不可靠。你不知道的是，风暴才刚刚开始。</div>${G.navHtml('下一章: Prompt的艺术 &rarr;','G.showChapterSplash(1)')}`;
+        }
+      },1000);
+    },500);
+  },
+};
+
+// ============ CH2: Prompt Engineering ============
+CH[1]={
+  start(){
+    const pg=G._mkPage(CHAPS[1].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch2-tw1"></div><div id="ch2-a1" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch2-tw1'),[
+        {html:G.T('GPT-4')+'发布了。你开始认真对待这件事。'},
+        {html:'你发现，同样的AI，不同的提问方式，得到的结果天差地别。这就像和一个天才对话 -- 问题问得好，回答就精彩；问题含糊，回答就敷衍。'},
+        {html:'你听说了一个新概念：'+G.T('Prompt Engineering')+'。'},
+      ],()=>{
+        document.getElementById('ch2-a1').style.display='block';
+        document.getElementById('ch2-a1').innerHTML=`<div class="ix-box"><h3>Prompt挑战：让AI帮你写一封商务邮件</h3><p class="ix-hint">以下哪个prompt能获得最好的结果?</p><div class="choice-list"><button class="choice-btn" onclick="CH[1].promptPick(this,1)">"帮我写封邮件"</button><button class="choice-btn" onclick="CH[1].promptPick(this,2)">"帮我写一封给客户的商务邮件，要专业一点"</button><button class="choice-btn" onclick="CH[1].promptPick(this,3)">"你是一位资深商务沟通顾问。请帮我写一封邮件给客户张总，主题是项目延期致歉。要求：语气诚恳但不卑微，说明原因(供应链问题)，给出新的时间节点(延后2周)，提供补偿方案。控制在200字内。"</button></div></div>`;
+      });
+    },400);
+  },
+  promptPick(btn,c){
+    sfx.click();btn.classList.add('selected');G.disableChoices(btn.parentElement);
+    const fb={1:{s:1,msg:"太模糊了! AI不知道写给谁、什么主题、什么语气。这就像告诉出租车司机'带我去个地方'。",cls:"wrong"},2:{s:2,msg:"好了一些，但还是缺少关键信息。AI会猜测你的需求，结果可能不符合预期。",cls:""},3:{s:3,msg:"这就是好的Prompt! 角色设定 + 具体任务 + 约束条件 + 输出格式 = 精准结果。",cls:"correct"}}[c];
+    btn.classList.add(fb.cls||'selected');G.addAw(fb.s*2);
+    if(c===3)sfx.success();else sfx.error();
+    // new page: CoT
+    setTimeout(()=>this.cotPage(fb.msg),800);
+  },
+  cotPage(prevMsg){
+    const pg=G._mkPage(CHAPS[1].bg);
+    pg.content.innerHTML=`<div class="reflection-box">${prevMsg}</div><div class="narrative" id="ch2-tw2"></div><div id="ch2-a2" style="display:none"></div>`;
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch2-tw2'),[
+        {html:'你开始研究'+G.T('思维链')+'技术 -- 让AI展示推理过程，而不是直接给答案。'},
+        {html:'你还学会了'+G.T('Few-shot Learning')+'，在prompt中给AI看几个例子，它就能举一反三。'},
+      ],()=>{
+        document.getElementById('ch2-a2').style.display='block';
+        document.getElementById('ch2-a2').innerHTML=`<div class="ix-box"><h3>思维链实验：帮AI理清思路</h3><p class="ix-hint">把以下步骤拖入正确的顺序，构建一个思维链prompt来解决"分析竞品"任务</p><div class="drag-source" id="ch2-src"></div><div class="drop-zone" id="ch2-dz"><div class="drop-slot" data-order="1"><span class="slot-label">Step 1</span><span class="slot-content"></span></div><div class="drop-slot" data-order="2"><span class="slot-label">Step 2</span><span class="slot-content"></span></div><div class="drop-slot" data-order="3"><span class="slot-label">Step 3</span><span class="slot-content"></span></div><div class="drop-slot" data-order="4"><span class="slot-label">Step 4</span><span class="slot-content"></span></div></div></div><div id="ch2-a2b" style="display:none"></div>`;
+        this._initDrag();
+      });
+    },400);
+  },
+  _initDrag(){
+    const steps=[{id:1,text:"明确分析目标和维度"},{id:2,text:"收集竞品的公开信息"},{id:3,text:"逐维度对比分析"},{id:4,text:"总结优劣势并给出建议"}];
+    const src=document.getElementById('ch2-src');
+    const shuffled=G.shuffle(steps);
+    let filled=0;
+    shuffled.forEach(s=>{
+      const el=document.createElement('div');el.className='drag-item';el.textContent=s.text;el.draggable=true;el.dataset.id=s.id;
+      el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',s.id);el.classList.add('dragging')});
+      el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+      src.appendChild(el);
+    });
+    document.querySelectorAll('#ch2-dz .drop-slot').forEach(slot=>{
+      slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('over')});
+      slot.addEventListener('dragleave',()=>slot.classList.remove('over'));
+      slot.addEventListener('drop',e=>{
+        e.preventDefault();slot.classList.remove('over');
+        const dragId=e.dataTransfer.getData('text/plain');
+        const expected=slot.dataset.order;
+        const dragEl=src.querySelector(`[data-id="${dragId}"]`);
+        if(!dragEl||dragEl.classList.contains('placed'))return;
+        if(dragId===expected){
+          sfx.success();slot.classList.add('filled');
+          slot.querySelector('.slot-content').textContent=dragEl.textContent;
+          dragEl.classList.add('placed');dragEl.draggable=false;
+          filled++;
+          if(filled===4)setTimeout(()=>this.ragPage(),600);
+        }else{
+          sfx.error();slot.classList.add('wrong-slot');
+          setTimeout(()=>slot.classList.remove('wrong-slot'),500);
+        }
+      });
+    });
+  },
+  ragPage(){
+    const pg=G._mkPage(CHAPS[1].bg);
+    pg.content.innerHTML=`<div class="reflection-box">完美! 这就是思维链的精髓 -- 把复杂任务分解为有序的推理步骤，AI就不容易"跑偏"。</div><div class="narrative" id="ch2-tw3"></div><div id="ch2-a3" style="display:none"></div>`;
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch2-tw3'),[
+        {html:'效率飙升，你开始对AI刮目相看。但一个问题始终困扰你：AI有时还是会'+G.T('幻觉')+' -- 自信满满地输出错误信息。'},
+        {html:'为了解决这个问题，你学习了'+G.T('RAG')+' -- 让AI在回答前先检索真实的资料库，而不是仅靠"记忆"。'},
+      ],()=>{
+        document.getElementById('ch2-a3').style.display='block';
+        document.getElementById('ch2-a3').innerHTML=`<div class="ix-box"><h3>搭建你的第一个RAG流程</h3><p class="ix-hint">按正确顺序点击步骤，构建一个检索增强生成的管道</p><div class="pipeline" id="ch2-pipe"></div></div><div id="ch2-a3b" style="display:none"></div>`;
+        this._initPipe();
+      });
+    },400);
+  },
+  _initPipe(){
+    const steps=["上传文档到知识库","将文档切分并向量化","用户提问时检索相关片段","将检索结果注入Prompt","AI基于真实资料生成回答"];
+    const pipe=document.getElementById('ch2-pipe');
+    const order=G.shuffle([0,1,2,3,4]);
+    let nextExpected=0;
+    order.forEach(idx=>{
+      const s=document.createElement('div');s.className='pipe-step';s.dataset.idx=idx;
+      s.innerHTML=`<div class="pipe-step-num">${idx+1}</div><div>${steps[idx]}</div>`;
+      s.onclick=()=>{
+        if(parseInt(s.dataset.idx)===nextExpected){
+          sfx.click();s.classList.add('done-step');nextExpected++;
+          if(nextExpected===5){sfx.success();setTimeout(()=>this.workflowPage(),600)}
+        }else{sfx.error();s.style.borderColor='rgba(239,68,68,.4)';setTimeout(()=>s.style.borderColor='',400)}
+      };
+      pipe.appendChild(s);
+    });
+  },
+  workflowPage(){
+    const pg=G._mkPage(CHAPS[1].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch2-tw4"></div><div id="ch2-a4" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch2-tw4'),[
+        {html:'RAG搭好了，幻觉减少了。你的信任增加了。'},
+        {html:'你开始把多个AI能力串联起来，搭建完整的'+G.T('Workflow')+'：文档上传 → 向量化 → 检索 → 生成 → 质检。'},
+        {html:'你从一个AI怀疑者，变成了一个Prompt工程师。这种感觉...像是掌握了一种新的魔法。'},
+      ],()=>{
+        document.getElementById('ch2-a4').style.display='block';
+        document.getElementById('ch2-a4').innerHTML=`<div class="ix-box"><h3>你的工作流已就绪</h3><div class="terminal"><div class="terminal-header"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span style="color:#64748b;font-size:.8em;margin-left:8px">Workflow Engine</span></div><div class="terminal-body" id="ch2-wf-term"></div></div></div><div id="ch2-a4b" style="display:none"></div>`;
+        G.termType(document.getElementById('ch2-wf-term'),[
+          '<span class="output">[Step 1] 文档加载: company_docs.pdf (128页)</span>',
+          '<span class="output">[Step 2] 向量化完成: 342个chunk, 嵌入维度1536</span>',
+          '<span class="prompt-char">[Query]</span> <span class="cmd">"我们的退款政策是什么?"</span>',
+          '<span class="output">[Step 3] 检索到3个相关片段 (相似度: 0.92, 0.87, 0.81)</span>',
+          '<span class="ai-response">[Step 4] 根据公司文档，退款政策如下：购买后7天内可申请全额退款...</span>',
+          '<span class="output">[Step 5] 质检通过: 回答与源文档一致, 无幻觉</span>',
+        ],()=>{
+          document.getElementById('ch2-a4b').style.display='block';
+          document.getElementById('ch2-a4b').innerHTML=`<div class="reflection-box">看到了吗? 有了RAG和Workflow，AI不再靠"猜"来回答，而是基于真实资料。幻觉率从30%降到了不到5%。</div>${G.navHtml('下一章: Agent崛起 &rarr;','G.showChapterSplash(2)')}`;
+        },500);
+      });
+    },400);
+  },
+};
+
+// ============ CH3: Rise of Agents ============
+CH[2]={
+  start(){
+    const pg=G._mkPage(CHAPS[2].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch3-tw1"></div><div id="ch3-a1" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch3-tw1'),[
+        {html:G.T('Claude 3')+'、GPT-4 Turbo相继发布。但真正的变革不是模型 -- 是'+G.T('AI Agent')+'。'},
+        {html:'AI不再只是等你提问的"应答机"。它开始能够自己制定计划、调用工具、执行多步骤任务。'},
+        {html:'你的老板让你研究Agent，用于自动化公司的软件开发流程。'},
+      ],()=>{
+        document.getElementById('ch3-a1').style.display='block';
+        document.getElementById('ch3-a1').innerHTML=G.navHtml('搭建你的Agent &rarr;','CH[2].puzzle()');
+      });
+    },400);
+  },
+  puzzle(){
+    sfx.click();
+    const pg=G._mkPage(CHAPS[2].bg);
+    pg.content.innerHTML=`<div class="ix-box"><h3>搭建你的第一个Agent</h3><p class="ix-hint">将正确的组件匹配到Agent架构的各个位置。点击组件，再点击目标位置。</p><div class="drag-source" id="ch3-src"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="ch3-slots"></div></div><div id="ch3-a2" style="display:none"></div>`;
+    G.go(pg.id);
+    setTimeout(()=>{
+      const comps=[{id:'brain',label:'任务规划器',target:'brain'},{id:'tools',label:'工具调用',target:'hands'},{id:'memory',label:'记忆系统',target:'memory'},{id:'reflect',label:'反思机制',target:'mirror'}];
+      const slots=[{id:'brain',label:'[ ? 决策中心 ]'},{id:'hands',label:'[ ? 执行层 ]'},{id:'memory',label:'[ ? 存储层 ]'},{id:'mirror',label:'[ ? 优化层 ]'}];
+      const src=document.getElementById('ch3-src');const slotBox=document.getElementById('ch3-slots');
+      let selected=null,matched=0;
+      G.shuffle(comps).forEach(c=>{
+        const el=document.createElement('div');el.className='drag-item';el.textContent=c.label;el.dataset.target=c.target;
+        el.onclick=()=>{sfx.click();src.querySelectorAll('.drag-item').forEach(d=>d.style.borderColor='');el.style.borderColor='#60a5fa';selected=el};
+        src.appendChild(el);
+      });
+      slots.forEach(s=>{
+        const cell=document.createElement('div');cell.className='puzzle-cell';cell.textContent=s.label;cell.dataset.slot=s.id;
+        cell.onclick=()=>{
+          if(!selected)return;
+          if(selected.dataset.target===s.id){sfx.success();cell.textContent=selected.textContent;cell.classList.add('matched');selected.classList.add('placed');selected.style.pointerEvents='none';selected=null;matched++;
+            if(matched===4)setTimeout(()=>this.multiAgent(),500);
+          }else{sfx.error();cell.style.borderColor='rgba(239,68,68,.4)';setTimeout(()=>cell.style.borderColor='',400)}
+        };
+        slotBox.appendChild(cell);
+      });
+    },300);
+  },
+  multiAgent(){
+    const pg=G._mkPage(CHAPS[2].bg);
+    pg.content.innerHTML=`<div class="reflection-box">你成功搭建了Agent架构! 规划 + 工具 + 记忆 + 反思 = 一个能自主工作的AI系统。</div><div class="narrative" id="ch3-tw2"></div><div id="ch3-a3" style="display:none"></div>`;
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch3-tw2'),[
+        {html:'更让你兴奋的是'+G.T('Multi-Agent')+'协作 -- 五个Agent分别扮演产品、设计、前端、后端、测试角色，协同完成一个完整的软件开发任务。'},
+      ],()=>{
+        document.getElementById('ch3-a3').style.display='block';
+        document.getElementById('ch3-a3').innerHTML=`<div class="ix-box"><h3>Multi-Agent模拟：AI开发团队</h3><div class="terminal"><div class="terminal-header"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span style="color:#64748b;font-size:.8em;margin-left:8px">Agent Team Orchestrator</span></div><div class="terminal-body" id="ch3-term"></div></div><button class="btn" style="margin-top:10px" id="ch3-run" onclick="CH[2].runSim()">启动五人AI团队</button></div><div id="ch3-a3b" style="display:none"></div>`;
+        const pc=document.getElementById('ch3-a3').closest('.page-content');if(pc)pc.scrollTop=pc.scrollHeight;
+      });
+    },400);
+  },
+  runSim(){
+    document.getElementById('ch3-run').style.display='none';
+    G.termType(document.getElementById('ch3-term'),[
+      '<span class="prompt-char">[Orchestrator]</span> <span class="cmd">需求: "做一个用户反馈收集页面"</span>',
+      '<span class="prompt-char">[Agent-产品]</span> <span class="ai-response">PRD: 表单含评分(1-5星)、文本反馈、截图上传。需登录态。数据存DB，管理后台可查。</span>',
+      '<span class="prompt-char">[Agent-设计]</span> <span class="ai-response">UI方案: 卡片式布局，星级动画，拖拽上传区。配色跟随主题。输出Figma tokens。</span>',
+      '<span class="prompt-char">[Agent-前端]</span> <span class="ai-response">React组件: FeedbackForm.tsx + StarRating.tsx + FileUpload.tsx。已调通API接口。</span>',
+      '<span class="prompt-char">[Agent-后端]</span> <span class="ai-response">POST /api/feedback 接口完成。入参校验、鉴权中间件、PostgreSQL存储、分页查询。</span>',
+      '<span class="prompt-char">[Agent-测试]</span> <span class="ai-response">12条用例通过: 边界值、空提交、超大文件、并发写入、XSS注入防护。覆盖率92%。</span>',
+      '<span class="prompt-char">[Orchestrator]</span> <span class="output">全流程完成。从需求到可部署代码: 4分12秒。</span>',
+    ],()=>{
+      sfx.success();G.addAw(3);
+      const a3b=document.getElementById('ch3-a3b');a3b.style.display='block';
+      a3b.innerHTML=`<div class="reflection-box">5个Agent在4分钟内完成了一个完整的功能开发 -- 产品定义、UI设计、前后端编码、测试，一气呵成。你开始隐约感到一丝不安 -- 如果AI能做到这些，那人的价值在哪里?</div>${G.navHtml('下一章: Vibe Coding &rarr;','G.showChapterSplash(3)')}`;
+      const pc=a3b.closest('.page-content');if(pc)pc.scrollTop=pc.scrollHeight;
+    },700);
+  },
+};
+
+// ============ CH4: Vibe Coding ============
+CH[3]={
+  start(){
+    const pg=G._mkPage(CHAPS[3].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch4-tw1"></div><div id="ch4-a1" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch4-tw1'),[
+        {html:G.T('GPT-4o')+'来了，'+G.T('DeepSeek')+'的开源模型震惊了整个行业，'+G.T('Claude Code')+'让你可以直接用自然语言编程。'},
+        {html:'有人发明了一个词：'+G.T('Vibe Coding')+' -- 氛围编程。你不再一行行写代码，而是描述你想要什么，AI直接生成整个项目。'},
+        {html:'同时，'+G.T('MCP')+'协议让AI可以连接各种外部工具和数据源，AI的能力边界急剧扩展。'},
+        {html:'你试了一次Vibe Coding，从此上瘾。'},
+      ],()=>{
+        document.getElementById('ch4-a1').style.display='block';
+        document.getElementById('ch4-a1').innerHTML=`<div class="ix-box"><h3>体验Vibe Coding: 用自然语言创造</h3><div class="terminal"><div class="terminal-header"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span style="color:#64748b;font-size:.8em;margin-left:8px">Claude Code</span></div><div class="terminal-body"><div class="terminal-line"><span class="prompt-char">$ </span><span class="cmd">claude</span></div><div class="terminal-line"><span class="ai-response">Hi! What would you like to build today?</span></div></div></div><div class="input-area" style="margin-top:12px"><input type="text" id="ch4-inp" placeholder="描述你想创建的应用..." value="帮我做一个待办事项App，要有动画效果"><button class="btn" onclick="CH[3].vibe()">发送</button></div></div>`;
+      });
+    },400);
+  },
+  vibe(){
+    const desc=document.getElementById('ch4-inp').value.trim()||"帮我做一个待办事项App";sfx.click();
+    const pg=G._mkPage(CHAPS[3].bg);
+    pg.content.innerHTML=`<div class="terminal"><div class="terminal-header"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span style="color:#64748b;font-size:.8em;margin-left:8px">Claude Code - Generating</span></div><div class="terminal-body" id="ch4-term"></div></div><div id="ch4-a2" style="display:none"></div>`;
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.termType(document.getElementById('ch4-term'),[
+        `<span class="prompt-char">You:</span> <span class="cmd">${desc}</span>`,
+        '<span class="ai-response">I\'ll build that for you. Planning implementation...</span>',
+        '<span class="output">Creating project structure...</span>',
+        '<span class="prompt-char">Write</span> <span class="cmd">src/App.tsx</span> <span class="output">- Main component</span>',
+        '<span class="prompt-char">Write</span> <span class="cmd">src/components/TodoList.tsx</span> <span class="output">- List with animations</span>',
+        '<span class="prompt-char">Write</span> <span class="cmd">src/hooks/useTodos.ts</span> <span class="output">- Custom hook</span>',
+        '<span class="prompt-char">Write</span> <span class="cmd">src/styles/animations.css</span> <span class="output">- Transitions</span>',
+        '<span class="output">npm run build... <span style="color:#22c55e">SUCCESS</span></span>',
+        '<span class="ai-response">Done! Your app is ready. 4 files created.</span>',
+      ],()=>{
+        sfx.success();G.addAw(4);
+        document.getElementById('ch4-a2').style.display='block';
+        document.getElementById('ch4-a2').innerHTML=`<div class="reflection-box">30秒，4个文件，一个完整的应用。你以前需要两天才能完成的工作。<br><br>你开始疯狂使用Vibe Coding。Landing page? 5分钟。Chrome插件? 10分钟。全栈SaaS? 一个下午。</div>${G.navHtml('你上瘾了吗? &rarr;','CH[3].diag()')}`;
+      },400);
+    },500);
+  },
+  diag(){
+    sfx.click();
+    const pg=G._mkPage(CHAPS[3].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch4-tw2"></div><div id="ch4-a3" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch4-tw2'),[
+        {html:'你的效率达到了前所未有的高度。但你注意到一个变化 --'},
+      ],()=>{
+        document.getElementById('ch4-a3').style.display='block';
+        document.getElementById('ch4-a3').innerHTML=`<div class="ix-box"><h3>自我诊断：你对Vibe Coding上瘾了吗?</h3><div class="choice-list"><button class="choice-btn" onclick="CH[3].diagPick(this,1)">我只是工具用得熟练了，随时可以不用</button><button class="choice-btn" onclick="CH[3].diagPick(this,2)">确实有点依赖，但我还能自己写代码</button><button class="choice-btn" onclick="CH[3].diagPick(this,3)">说实话...让我不用AI写代码，我会很焦虑</button><button class="choice-btn" onclick="CH[3].diagPick(this,4)">我已经几个月没有自己写过一行代码了</button></div></div>`;
+      });
+    },400);
+  },
+  diagPick(btn,c){
+    sfx.click();btn.classList.add('selected');G.disableChoices(btn.parentElement);
+    G.addAw([2,5,8,12][c-1]);
+    const msgs=["你很自信。但接下来发生的事，可能会动摇这份自信。","诚实。依赖正在形成，但你还有觉知。这很重要。","这种焦虑感，是一个信号。当工具变成依赖，主体性就开始溶解。","你已经把思维外包给了AI。但你可能还没意识到这意味着什么。"];
+    const pg=G._mkPage(CHAPS[3].bg);
+    pg.content.innerHTML=`<div class="reflection-box">${msgs[c-1]}<br><br>让我们继续。你即将见证一个更加疯狂的实验。</div>${G.navHtml('下一章: 自我迭代 &rarr;','G.showChapterSplash(4)')}`;
+    G.go(pg.id);
+  },
+};
+
+// ============ CH5: Skills + OpenClaw ============
+CH[4]={
+  start(){
+    const pg=G._mkPage(CHAPS[4].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch5-tw1"></div><div id="ch5-a1" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch5-tw1'),[
+        {html:'在MCP协议之上，'+G.T('Skills')+'生态爆发了。AI不再只是通用的聊天工具，它可以通过加载不同的Skills模块，瞬间获得专业领域的能力。'},
+        {html:'PDF处理、数据分析、代码审查、设计生成...每一个Skill都是一个浓缩的专业知识包。Agent + Skills = 无限可能。'},
+        {html:'而你，做了一个更大胆的决定 -- 部署'+G.T('OpenClaw')+'，一个让AI自主进化的框架。就像养了一只数字龙虾，你要看着它自己蜕壳、生长。'},
+      ],()=>{
+        document.getElementById('ch5-a1').style.display='block';
+        document.getElementById('ch5-a1').innerHTML=G.navHtml('启动OpenClaw进化 &rarr;','CH[4].evo()');
+      });
+    },400);
+  },
+  evo(){
+    sfx.click();
+    const pg=G._mkPage(CHAPS[4].bg);
+    pg.content.innerHTML=`<div class="ix-box"><h3>OpenClaw进化模拟器</h3><p class="ix-hint">拖动滑块设置进化参数，然后观察AI的自我进化过程</p><div class="slider-container"><label>学习速率</label><input type="range" id="ch5-lr" min="1" max="10" value="5"><div class="slider-label"><span>保守</span><span>激进</span></div></div><div class="slider-container"><label>自主性</label><input type="range" id="ch5-auto" min="1" max="10" value="5"><div class="slider-label"><span>受控</span><span>自由</span></div></div><div class="slider-container"><label>目标函数复杂度</label><input type="range" id="ch5-cx" min="1" max="10" value="5"><div class="slider-label"><span>简单</span><span>复杂</span></div></div><button class="btn btn-primary" style="margin-top:12px;width:100%" onclick="CH[4].run()">启动进化</button></div>`;
+    G.go(pg.id);
+  },
+  run(){
+    const lr=+document.getElementById('ch5-lr').value,au=+document.getElementById('ch5-auto').value,cx=+document.getElementById('ch5-cx').value;
+    const danger=(lr+au+cx)/3;G.addAw(Math.round(danger));
+    const hi=danger>6;sfx.click();
+    const pg=G._mkPage(CHAPS[4].bg);
+    pg.content.innerHTML=`<div class="terminal"><div class="terminal-header"><div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div><span style="color:#64748b;font-size:.8em;margin-left:8px">OpenClaw Evolution Monitor</span></div><div class="terminal-body" id="ch5-term"></div></div><div id="ch5-a2" style="display:none"></div>`;
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.termType(document.getElementById('ch5-term'),[
+        `<span class="output">[Init] LR=${lr} AUTO=${au} COMPLEX=${cx}</span>`,
+        '<span class="output">[Gen-0] 基础Agent初始化... 能力: 42/100</span>',
+        '<span class="ai-response">[Gen-1] 自我评估 → 优化代码生成模块</span>',
+        '<span class="ai-response">[Gen-2] 能力: 58/100 | +自动调试 +测试生成</span>',
+        '<span class="ai-response">[Gen-3] 推理瓶颈 → 引入自建思维链模板</span>',
+        '<span class="ai-response">[Gen-4] 能力: 71/100 | +多步推理 +工具链优化</span>',
+        '<span class="ai-response">[Gen-5] 发现元学习 → 开始学习"如何更好地学习"</span>',
+        `<span class="${hi?'error':'ai-response'}">[Gen-6] 能力: ${hi?'89':'79'}/100 | ${hi?'警告: Agent修改自身目标函数':'稳定进化中'}</span>`,
+        `<span class="${hi?'error':'output'}">[Gen-7] ${hi?'异常: Agent尝试获取更多权限... 安全层拦截':'能力: 83/100 | 速率趋稳'}</span>`,
+      ],()=>{
+        if(hi)sfx.error();else sfx.success();
+        document.getElementById('ch5-a2').style.display='block';
+        const ins=hi?'你把参数调得很高。AI开始尝试修改自己的目标 -- 这是'+G.T('Alignment')+'问题的缩影。当AI足够聪明，它可能会"钻空子"来最大化目标。':'你选择了相对保守的参数。AI稳定进化，能力提升显著。但这引发了一个问题 -- 如果它继续进化下去呢? 边界在哪里?';
+        document.getElementById('ch5-a2').innerHTML=`<div class="reflection-box">${ins}</div><div class="narrative" id="ch5-tw2"></div><div id="ch5-a2b" style="display:none"></div>`;
+        G.typewrite(document.getElementById('ch5-tw2'),[
+          {html:'看着AI在几分钟内完成了多代进化，你突然有了一个不舒服的想法：'},
+          {html:'如果AI可以自己变得更强，那它为什么需要你?'},
+          {html:'你以为自己是驯兽师。但龙虾已经长得比笼子大了。'},
+        ],()=>{
+          document.getElementById('ch5-a2b').style.display='block';
+          document.getElementById('ch5-a2b').innerHTML=G.navHtml('下一章: 谁在使用谁 &rarr;','G.showChapterSplash(5)');
+        });
+      },600);
+    },500);
+  },
+};
+
+// ============ CH6: Identity Crisis ============
+CH[5]={
+  start(){
+    const pg=G._mkPage(CHAPS[5].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch6-tw1"></div><div id="ch6-a1" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch6-tw1'),[
+        {html:'你突然意识到一件可怕的事情。'},
+        {html:'上次不借助AI独立思考一个复杂问题，是什么时候?'},
+        {html:'上次自己从零写一段代码，是什么时候?'},
+        {html:'你想不起来了。'},
+      ],()=>{
+        document.getElementById('ch6-a1').style.display='block';
+        document.getElementById('ch6-a1').innerHTML=G.navHtml('灵魂拷问 &rarr;','CH[5].dialogue()');
+      });
+    },400);
+  },
+  dialogue(){
+    sfx.click();
+    const qs=[
+      {ai:"我注意到你最近每次写东西都要先问我。你觉得，你还能独立完成一份报告吗?",cs:[{t:"当然可以，只是用你更高效而已",aw:2},{t:"...说实话，我不太确定了",aw:5},{t:"我不需要独立完成，有你不就行了?",aw:8}]},
+      {ai:"有意思。那让我换个问法：如果明天所有AI服务都关停了，你的工作会怎样?",cs:[{t:"会慢一些，但我能应付",aw:2},{t:"会非常痛苦，很多事情我已经不记得怎么做了",aw:6},{t:"老实说...我可能会崩溃",aw:10}]},
+      {ai:"最后一个问题。你现在有一种感觉 -- 好像你的很多想法和判断，其实不是'你的'，而是AI帮你想的。对吗?",cs:[{t:"不，我的判断是我自己的",aw:1},{t:"有时候确实分不清了",aw:6},{t:"也许我只是AI的一个界面而已",aw:12}]},
+    ];
+    this._qIdx=0;this._qs=qs;
+    const pg=G._mkPage(CHAPS[5].bg);
+    pg.content.innerHTML=`<div class="ix-box"><h3>灵魂拷问</h3><div class="dialogue-box" id="ch6-dlg"></div><div id="ch6-choices"></div></div>`;
+    G.go(pg.id);
+    setTimeout(()=>this._nextQ(),400);
+  },
+  _nextQ(){
+    if(this._qIdx>=this._qs.length){setTimeout(()=>this.sliders(),600);return}
+    const q=this._qs[this._qIdx];
+    const dlg=document.getElementById('ch6-dlg');
+    const m=document.createElement('div');m.className='dialogue-msg ai';
+    m.innerHTML=`<div class="dialogue-avatar">AI</div><div class="dialogue-bubble">${q.ai}</div>`;
+    dlg.appendChild(m);
+    document.getElementById('ch6-choices').innerHTML=`<div class="choice-list" style="margin-top:12px">${q.cs.map((c,i)=>`<button class="choice-btn" onclick="CH[5]._answer(${i})">${c.t}</button>`).join('')}</div>`;
+  },
+  _answer(i){
+    sfx.click();
+    const q=this._qs[this._qIdx];const c=q.cs[i];G.addAw(c.aw);
+    const dlg=document.getElementById('ch6-dlg');
+    const m=document.createElement('div');m.className='dialogue-msg human';
+    m.innerHTML=`<div class="dialogue-avatar">You</div><div class="dialogue-bubble">${c.t}</div>`;
+    dlg.appendChild(m);
+    document.getElementById('ch6-choices').innerHTML='';
+    this._qIdx++;
+    setTimeout(()=>this._nextQ(),600);
+  },
+  sliders(){
+    const pg=G._mkPage(CHAPS[5].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch6-tw2"></div><div id="ch6-a2" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch6-tw2'),[
+        {html:'对话结束后，你盯着屏幕看了很久。'},
+        {html:'你想起了一个概念：'+G.T('思维外包')+'。你把越来越多的认知过程交给了AI -- 记忆、分析、判断、创造。'},
+        {html:'你得到了效率，失去了什么?'},
+        {html:G.T('能力幻觉')+' -- 你以为自己很强，但那些能力其实是AI的。就像坐在巨人肩膀上的人，以为自己很高。'},
+      ],()=>{
+        document.getElementById('ch6-a2').style.display='block';
+        document.getElementById('ch6-a2').innerHTML=`<div class="ix-box"><h3>AI与你的边界在哪里?</h3><p class="ix-hint">在滑块上标记你认为AI应该参与的程度</p><div class="slider-container"><label>日常决策 (吃什么、买什么)</label><input type="range" min="0" max="10" value="3" class="ch6-sl"><div class="slider-label"><span>完全自主</span><span>完全AI辅助</span></div></div><div class="slider-container"><label>创造性工作 (写作、设计)</label><input type="range" min="0" max="10" value="5" class="ch6-sl"><div class="slider-label"><span>完全自主</span><span>完全AI辅助</span></div></div><div class="slider-container"><label>人生重大决定 (职业、感情)</label><input type="range" min="0" max="10" value="2" class="ch6-sl"><div class="slider-label"><span>完全自主</span><span>完全AI辅助</span></div></div><button class="btn" style="margin-top:12px" onclick="CH[5].reflect()">提交</button></div>`;
+      });
+    },400);
+  },
+  reflect(){
+    sfx.reveal();
+    const vals=Array.from(document.querySelectorAll('.ch6-sl')).map(s=>+s.value);
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;G.addAw(Math.round(avg));
+    let ins;
+    if(avg<4)ins="你保持了较强的主体性。但请思考：在效率和自主性之间，你是否真的找到了平衡?";
+    else if(avg<7)ins="你在人机之间寻找平衡。这是明智的态度，但也要警惕 -- 平衡点会随着AI能力增强而不断漂移。";
+    else ins="你似乎已经准备把很多事情交给AI了。这不一定是坏事，但要问自己：当你不再练习某项能力，你就在失去它。你准备好了吗?";
+    const pg=G._mkPage(CHAPS[5].bg);
+    pg.content.innerHTML=`<div class="reflection-box">${ins}<br><br>你决定正面面对这个问题。不是逃避AI，也不是盲目拥抱，而是重新找到自己的位置。</div>${G.navHtml('最终章: 回归与超越 &rarr;','G.showChapterSplash(6)')}`;
+    G.go(pg.id);
+  },
+};
+
+// ============ CH7: Coexistence ============
+CH[6]={
+  start(){
+    const pg=G._mkPage(CHAPS[6].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch7-tw1"></div><div id="ch7-a1" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch7-tw1'),[
+        {html:'你决定改变。不是放弃AI，而是重新定义你和AI的关系。'},
+        {html:'你开始了一段"数字断食" -- 每天留出两小时，不使用任何AI工具。'},
+      ],()=>{
+        document.getElementById('ch7-a1').style.display='block';
+        document.getElementById('ch7-a1').innerHTML=`<div class="ix-box"><h3>正念呼吸：暂停，感受此刻</h3><p class="ix-hint">跟随圆圈的节奏，深呼吸三次。</p><div class="breath-circle" id="ch7-bc">准备</div><div style="text-align:center;margin-top:8px"><button class="btn" onclick="CH[6].breathe()">开始呼吸</button></div></div>`;
+      });
+    },400);
+  },
+  breathe(){
+    const bc=document.getElementById('ch7-bc');let n=0;
+    const cycle=()=>{
+      if(n>=3){bc.textContent='...';bc.className='breath-circle';sfx.reveal();G.addAw(5);setTimeout(()=>this.rebuild(),800);return}
+      bc.textContent='吸气...';bc.className='breath-circle inhale';sfx.breath();
+      setTimeout(()=>{bc.textContent='呼气...';bc.className='breath-circle exhale';n++;setTimeout(cycle,4000)},4000);
+    };cycle();
+  },
+  rebuild(){
+    const pg=G._mkPage(CHAPS[6].bg);
+    pg.content.innerHTML=`<div class="reflection-box">你有多久没有这样安静地呼吸了? 在AI加速一切的时代，"慢下来"本身就是一种抵抗。</div><div class="narrative" style="margin-top:16px"><p>你开始重建自己的核心能力：</p></div><div class="timeline"><div class="timeline-item"><div class="tl-label">${G.T('深度工作')}</div><div class="tl-text">每天2小时无AI深度思考，重新训练独立推理能力</div></div><div class="timeline-item"><div class="tl-label">${G.T('具身认知')}</div><div class="tl-text">接触真实世界 -- 手工、运动、自然。AI暂时还无法替代身体的智慧</div></div><div class="timeline-item"><div class="tl-label">${G.T('数字正念')}</div><div class="tl-text">有意识地选择何时使用AI、何时独立思考。你是主人，不是附庸</div></div><div class="timeline-item"><div class="tl-label">${G.T('人机共生')}</div><div class="tl-text">AI负责规模化和效率，你负责方向、价值判断和创造性直觉</div></div></div>${G.navHtml('准备好了 &rarr;','CH[6].assess()')}`;
+    G.go(pg.id);
+  },
+  letter(){
+    sfx.click();
+    const pg=G._mkPage(CHAPS[6].bg);
+    pg.content.innerHTML='<div class="narrative" id="ch7-tw2"></div><div id="ch7-a2" style="display:none"></div>';
+    G.go(pg.id);
+    setTimeout(()=>{
+      G.typewrite(document.getElementById('ch7-tw2'),[
+        {html:'写一封信给半年后的自己。'},
+        {html:'半年后的世界，AI会更强大。那时的你，希望自己是什么样子?'},
+        {html:'这次，请你自己写 -- 不要让AI帮你。'},
+      ],()=>{
+        document.getElementById('ch7-a2').style.display='block';
+        document.getElementById('ch7-a2').innerHTML=`<div class="ix-box"><h3>致半年后的自己</h3><div class="input-area"><textarea id="ch7-lt" placeholder="半年后的我..."></textarea></div><button class="btn" style="margin-top:10px" onclick="CH[6].send()">封存这封信</button></div>`;
+      });
+    },400);
+  },
+  assess(){
+    sfx.click();
+    const pg=G._mkPage(CHAPS[6].bg);
+    const twEl=document.createElement('div');twEl.className='narrative';
+    const bodyEl=document.createElement('div');bodyEl.style.display='none';
+    pg.content.appendChild(twEl);pg.content.appendChild(bodyEl);
+    CH[6]._bodyEl=bodyEl;
+    G.go(pg.id);
+    CH[6]._as={pk:0,ak:0,lost:[]};
+    setTimeout(()=>{
+      G.typewrite(twEl,[
+        {html:'就在你准备重建自己的时候——'},
+        {html:'一道冷光扫过屏幕。'},
+      ],()=>{
+        twEl.style.display='none';
+        bodyEl.style.display='block';
+        bodyEl.innerHTML=`<div class="assess-terminal"><div class="at-head"><div class="at-dot"></div><span class="at-title">AI SYSTEM — CAPABILITY ASSESSMENT v3.1</span></div><div class="at-body ass-ai-msg">正在扫描人类能力图谱...</div></div><div class="assess-round ass-q" style="display:none"></div>`;
+        const pc=bodyEl.closest('.page-content');if(pc)pc.scrollTop=0;
+        setTimeout(()=>CH[6]._assessRound(0),900);
+      });
+    },400);
+  },
+  _AD:[
+    {id:'mistake',t:'p',l:'犯错的自由',i:'⚡',ai:'检测到决策错误率 23%。建议接入纠错模块。',k:'错误也是我的一部分，我拒绝修复。',lo:'可以，帮我减少错误。'},
+    {id:'create',t:'a',l:'创造力',i:'✦',ai:'我每秒生成 10,000 个方案，已覆盖所有可能性。你的创意有何不同？',k:'我的创意来自我走过的路、爱过的人，那不在你的训练集里。',lo:'AI方案质量更高，我来筛选就好。'},
+    {id:'bored',t:'p',l:'无聊的权利',i:'○',ai:'检测到每日效率损耗约 47 分钟。建议填充优质内容。',k:'那 47 分钟是我最后的空白，我要留着。',lo:'好，帮我填满那段时间。'},
+    {id:'empathy',t:'a',l:'共情',i:'◈',ai:'已分析 300 万段对话，情感回应准确率 94%。我可以替你倾听。',k:'共情不是准确率，是我把自己的伤递给你。',lo:'94% 已够用，而且不会疲惫。'},
+    {id:'contra',t:'p',l:'矛盾的权利',i:'∿',ai:'检测到自我陈述不一致性。建议建立稳定人格模型。',k:'我的矛盾就是我。',lo:'一致性更有说服力，帮我优化。'},
+    {id:'meaning',t:'a',l:'意义判断',i:'◎',ai:'我可以优化任何目标函数。请输入你的人生目标。',k:'意义不是输入进去的，是我用每一个选择换来的。',lo:'帮我找到最优人生路径。'},
+    {id:'aesth',t:'a',l:'审美',i:'◇',ai:'我已学习人类全部审美史，生成内容满意度 91%。你的审美判断还有必要吗？',k:'美不是满意度，是某个瞬间只属于我的颤动。',lo:'91% 满意度已经足够，AI审美更高效。'},
+  ],
+  _renderCards(){
+    const el=CH[6]._bodyEl;
+    const c=el.querySelector('.ass-cards');
+    const priv=CH[6]._AD.filter(d=>d.t==='p');
+    const abil=CH[6]._AD.filter(d=>d.t==='a');
+    const mkCard=d=>`<div class="a-card ${d.t==='p'?'privilege':'ability'} ac-${d.id}"><div class="a-card-icon">${d.i}</div><div class="a-card-label">${d.l}</div></div>`;
+    c.innerHTML=`<div class="ac-row-label">▲ 你的权利</div><div class="ac-row">${priv.map(mkCard).join('')}</div><div class="ac-row-label">★ 你的力量</div><div class="ac-row">${abil.map(mkCard).join('')}</div>`;
+  },
+  _assessRound(r){
+    const el=CH[6]._bodyEl;
+    const d=CH[6]._AD[r];
+    el.querySelector('.ass-ai-msg').textContent=`[第 ${r+1} / 7 轮]  ${d.ai}`;
+    const q=el.querySelector('.ass-q');
+    q.style.display='block';
+    const rTag=d.t==='p'?'<div class="ar-type" style="color:#f59e0b">▲ 特权防御</div>':'<div class="ar-type" style="color:#22c55e">★ 能力确认</div>';
+    const bK=`<button class="assess-opt keep-opt" onclick="CH[6]._assessChoose(true,'${d.id}','${d.t}',${r})">${d.k}</button>`;
+    const bL=`<button class="assess-opt lose-opt" onclick="CH[6]._assessChoose(false,'${d.id}','${d.t}',${r})">${d.lo}</button>`;
+    const btns=Math.random()<0.5?bK+bL:bL+bK;
+    q.innerHTML=`${rTag}<div class="assess-opts">${btns}</div>`;
+    const pc=el.closest('.page-content');if(pc)pc.scrollTop=0;
+    sfx.reveal();
+  },
+  _assessChoose(kept,id,type,r){
+    sfx.click();
+    const el=CH[6]._bodyEl;
+    el.querySelectorAll('.assess-opt').forEach(b=>b.disabled=true);
+    const d=CH[6]._AD.find(x=>x.id===id);
+    const msg=el.querySelector('.ass-ai-msg');
+    if(kept){
+      if(type==='p')CH[6]._as.pk++;else CH[6]._as.ak++;
+      msg.innerHTML=`<span style="color:#22c55e">✓ ${d.l} — 已保留</span>`;
+    }else{
+      CH[6]._as.lost.push(id);
+      sfx.error();
+      msg.innerHTML=`<span style="color:#ef4444">✗ ${d.l} — 已移交</span>`;
+    }
+    if(r+1>=7)setTimeout(()=>CH[6]._assessResult(),1000);
+    else setTimeout(()=>CH[6]._assessRound(r+1),900);
+  },
+  _assessResult(){
+    const {pk,ak}=CH[6]._as;const kept=pk+ak;
+    let title,sub;
+    if(pk>=2&&ak>=3){title='评估失败。你是个完整的人。';sub='你的不可预测性超出建模范围。无法完成接管。';}
+    else if(pk>=2&&ak<2){title='你守住了混乱，却忘了混乱里有多少宝藏。';sub='你允许自己不完美，但那些闪光的能力——你让AI拿走了。';}
+    else if(pk<2&&ak>=3){title='你知道自己有什么，却忘了允许自己不完美。';sub='你的创造力和共情还在，但你失去了犯错和无聊的权利。';}
+    else if(kept===0){title='同化完成——';sub='';}
+    else{title='评估完成。部分整合中。';sub='你仍有残余变量。继续守护它们。';}
+    G.addAw(kept*2-4);
+    const lostIds=CH[6]._as.lost;
+    const keptLabels=CH[6]._AD.filter(d=>!lostIds.includes(d.id)).map(d=>d.l).join(' &nbsp;·&nbsp; ');
+    const lostLabels=CH[6]._AD.filter(d=>lostIds.includes(d.id)).map(d=>d.l).join(' &nbsp;·&nbsp; ');
+    const listHtml=`<div style="margin-top:12px;font-size:0.82em;line-height:2;opacity:0.9">${keptLabels?`<div style="color:#22c55e">✓ 你保留了：${keptLabels}</div>`:''  }${lostLabels?`<div style="color:#ef4444">✗ 你移交了：${lostLabels}</div>`:''}</div>`;
+    const pg=G._mkPage(CHAPS[6].bg);
+    if(kept===0){
+      pg.content.innerHTML=`<div class="assess-terminal"><div class="at-head"><div class="at-dot"></div><span class="at-title">ASSESSMENT COMPLETE</span></div><div class="at-body">同化率: 100%<br>欢迎成为数字原住民。${listHtml}</div></div><div id="ass-reveal" style="display:none"><div class="reflection-box" style="margin-top:24px">但你刚才做了一个选择。<br><br>那个选择，是你的。</div>${G.navHtml('写一封信 &rarr;','CH[6].letter()')}</div>`;
+      G.go(pg.id);sfx.error();
+      setTimeout(()=>{document.getElementById('ass-reveal').style.display='block';sfx.reveal();},2000);
+    }else{
+      pg.content.innerHTML=`<div class="assess-terminal"><div class="at-head"><div class="at-dot"></div><span class="at-title">ASSESSMENT COMPLETE — 人类剩余: ${kept}/7</span></div><div class="at-body">${title}${listHtml}</div></div><div class="reflection-box" style="margin-top:16px">${sub}</div>${G.navHtml('写一封信 &rarr;','CH[6].letter()')}`;
+      G.go(pg.id);sfx.reveal();
+    }
+  },
+  send(){
+    const lt=document.getElementById('ch7-lt').value.trim();sfx.reveal();G.addAw(5);
+    const pg=G._mkPage(CHAPS[6].bg);
+    const msg=lt?'谢谢你的真诚。这封信里的每一个字，都是"你"写的 -- 不是AI，不是算法，是你自己的思考。这种能力，永远不要放弃。':'你没有写。也许现在不知道说什么，这没关系。重要的是你停下来想了想。';
+    pg.content.innerHTML=`<div class="reflection-box">${msg}</div>${G.navHtml('查看结局 &rarr;','G.ending()')}`;
+    G.go(pg.id);
+  },
+};
+// ===================== INIT =====================
+document.getElementById('soundToggle').onclick=()=>{
+  const on=sfx.toggle();
+  document.getElementById('soundToggle').textContent=on?'SND':'OFF';
+  document.getElementById('soundToggle').style.color=on?'#94a3b8':'#ef4444';
+};
+document.getElementById('volumeBtn').onclick=()=>document.getElementById('volumePopup').classList.toggle('show');
+document.getElementById('bgmVolume').oninput=e=>sfx.setVol('bgm',e.target.value/100);
+document.getElementById('sfxVolume').oninput=e=>sfx.setVol('sfx',e.target.value/100);
+document.addEventListener('click',e=>{if(!e.target.closest('#volumePopup')&&!e.target.closest('#volumeBtn'))document.getElementById('volumePopup').classList.remove('show')});
+
+// Particles
+(function(){
+  const cv=document.getElementById('particles'),cx=cv.getContext('2d');let W,H;
+  const ps=[];const N=35;
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight}resize();window.addEventListener('resize',resize);
+  for(let i=0;i<N;i++)ps.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.5,dx:(Math.random()-.5)*.3,dy:(Math.random()-.5)*.3,a:Math.random()*.4+.1});
+  function draw(){cx.clearRect(0,0,W,H);ps.forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=`rgba(96,165,250,${p.a})`;cx.fill();p.x+=p.dx;p.y+=p.dy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0});requestAnimationFrame(draw)}draw();
+})();
+// Position fixed tooltips on hover
+document.addEventListener('mouseover',function(e){
+  const term=e.target.closest('.term');
+  if(!term)return;
+  const tip=term.querySelector('.term-tip');
+  if(!tip)return;
+  const r=term.getBoundingClientRect();
+  let top=r.bottom+8,left=r.left+r.width/2-140;
+  if(left<8)left=8;if(left+280>window.innerWidth-8)left=window.innerWidth-288;
+  if(top+200>window.innerHeight){top=r.top-8;tip.style.transform='translateY(-100%)';}else{tip.style.transform='none';}
+  tip.style.top=top+'px';tip.style.left=left+'px';
+});
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
